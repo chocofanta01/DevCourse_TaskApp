@@ -2,11 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { ILogItem } from "../../types";
 
 type loggerState = {
-    logArray: ILogItem[]
+    logArray: ILogItem[];
+    modalActive: boolean;
 }
 
 const initialState: loggerState = {
-    logArray: []
+    logArray: [],
+    modalActive: false
 }
 
 const loggerSlice = createSlice({
@@ -15,9 +17,12 @@ const loggerSlice = createSlice({
     reducers: {
         addLog: (state, { payload }: { payload: ILogItem }) => {
             state.logArray.push(payload);
+        },
+        setLoggerModalActive: (state, { payload }: { payload: boolean }) => {
+            state.modalActive = payload;
         }
     }
 })
 
-export const { addLog } = loggerSlice.actions;
+export const { addLog, setLoggerModalActive } = loggerSlice.actions;
 export const loggerReducer = loggerSlice.reducer
