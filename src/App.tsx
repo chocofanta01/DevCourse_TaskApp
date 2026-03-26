@@ -11,6 +11,8 @@ import { v4 } from 'uuid'
 import EditModal from './components/EditModal/EditModal'
 import LoggerModal from './components/LoggerModal/LoggerModal'
 import { setLoggerModalActive } from './store/slices/loggerSlice'
+import { auth, provider, signInWithPopup, signOut } from './firebase'
+import { removeUser, setUser } from './store/slices/userSlice'
 
 function App() {
   const dispatch = useTypedDispatch();
@@ -18,6 +20,7 @@ function App() {
   const boards = useTypedSelector(state => state.boards.boardArray)
   const modalActive = useTypedSelector(state => state.boards.modalActive)
   const loggerModalActive = useTypedSelector(state => state.logger.modalActive)
+  const user = useTypedSelector(state => state.user)
 
   const activeBoard = boards.find(b => b.boardId === activeBoardId) || boards[0]
 
@@ -43,7 +46,7 @@ function App() {
       dispatch(addLog({
         logId: v4(),
         logMessage: `게시판 삭제하기: ${activeBoard.boardName}`,
-        logAuthor: "User",
+        logAuthor: user.email || "Guest",
         logTimestamp: String(Date.now())
       }));
 
@@ -52,6 +55,29 @@ function App() {
       setActiveBoardId(nextBoardId);
     } else {
       alert("최소 하나의 게시판은 존재해야 합니다.");
+    }
+  }
+
+  const handleAuth = () => {
+    if (user.email) {
+      signOut(auth)
+        .then(() => {
+          dispatch(removeUser());
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+    } else {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          dispatch(setUser({
+            email: result.user.email,
+            id: result.user.uid
+          }));
+        })
+        .catch((error) => {
+          console.error(error);
+        })
     }
   }
 
@@ -81,6 +107,9 @@ function App() {
         </button>
         <button className={loggerButton} onClick={() => dispatch(setLoggerModalActive(true))}>
           활동 기록 보기
+        </button>
+        <button className={loggerButton} onClick={handleAuth}>
+          {user.email ? "로그아웃" : "로그인"}
         </button>
       </div>
     </div>
